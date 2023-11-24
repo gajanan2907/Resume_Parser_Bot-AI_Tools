@@ -25,13 +25,14 @@ public class ResumeParserSwingApp extends JFrame {
 
     private final JTextArea textArea;
     private JDialog loaderDialog;
+    private JFrame frame;
 
     public ResumeParserSwingApp() {
-        setTitle("Upload Resume and Export in Excel");
+        setTitle("Resumes_Parser_Bot-AI_Tools");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JButton uploadButton = new JButton("Upload Resume");
+        JButton uploadButton = new JButton("Select Resumes");
 
         textArea = new JTextArea(10, 30);
         textArea.setEditable(false);
@@ -46,13 +47,9 @@ public class ResumeParserSwingApp extends JFrame {
 
         uploadButton.addActionListener(e -> {
             try {
-
                 uploadButtonActionPerformed();
-                showLoader();
             } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            } finally {
-                hideLoader();
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -69,7 +66,6 @@ public class ResumeParserSwingApp extends JFrame {
     }
 
     private void uploadButtonActionPerformed() throws IOException {
-
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setMultiSelectionEnabled(true);
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Resume Files", "pdf");
@@ -78,16 +74,43 @@ public class ResumeParserSwingApp extends JFrame {
         int result = fileChooser.showOpenDialog(this);
 
         if (result == JFileChooser.APPROVE_OPTION) {
-            File[] selectedFiles = fileChooser.getSelectedFiles();
-            List<File> files = new ArrayList<>();
+            List<File> selectedFiles = List.of(fileChooser.getSelectedFiles());
 
-            for (File file : selectedFiles) {
-                textArea.append(file.getName() + "\n");
-                files.add(file);
+            if (!selectedFiles.isEmpty()) {
+                SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        sendFileToAPI(selectedFiles);
+                        Thread.sleep(3000);
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        hideLoader();
+                        loaderDialog.dispose();
+                        JOptionPane.showMessageDialog(ResumeParserSwingApp.this,
+                                "Resume data successfully exported. Check your directory.");
+                    }
+                };
+                loaderDialog = createLoadingDialog(frame);
+                worker.execute();
+                loaderDialog.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select files for export.", "No Files Selected", JOptionPane.WARNING_MESSAGE);
             }
-            sendFileToAPI(files);
         }
+    }
 
+    private JDialog createLoadingDialog(Frame parent) {
+        JDialog dialog = new JDialog(parent, "Loading...", true);
+        JLabel label = new JLabel("Please wait...");
+        label.setHorizontalAlignment(JLabel.CENTER);
+        dialog.getContentPane().add(label);
+        dialog.setSize(200, 100);
+        dialog.setLocationRelativeTo(parent);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        return dialog;
     }
 
     private void hideLoader() {
@@ -111,7 +134,6 @@ public class ResumeParserSwingApp extends JFrame {
         loaderDialog.setUndecorated(true);
         loaderDialog.setVisible(true);
     }
-
 
     private void sendFileToAPI(List<File> files) throws IOException {
         String apiUrl = "https://35ryklyq7xikor77u7hoklhf4y0ppljj.lambda-url.ap-south-1.on.aws/file";
@@ -142,6 +164,11 @@ public class ResumeParserSwingApp extends JFrame {
             } else {
                 System.err.println("API Error Response: " + responseEntity.getBody());
             }
+        }
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         downloadButtonActionPerformed(resumeFileDtos);
 
