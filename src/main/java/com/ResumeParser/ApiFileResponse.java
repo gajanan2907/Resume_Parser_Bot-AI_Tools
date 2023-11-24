@@ -26,6 +26,9 @@ public class ApiFileResponse {
         @JsonProperty("Experience_Details")
         private EmploymentDetails employmentDetails;
 
+        @JsonProperty("refined_experience_details")
+        private List<RefinedExperienceDetails> refinedExperienceDetails;
+
         @JsonProperty("Education_Details")
         private EducationDetails educationDetails;
 
@@ -38,7 +41,7 @@ public class ApiFileResponse {
 
             private String name;
 
-            @JsonProperty("phoneNo")
+            @JsonProperty("phoneno")
             private String phoneNumber;
 
             private String email;
@@ -70,30 +73,27 @@ public class ApiFileResponse {
             @JsonProperty("skills")
             private List<String> skills = new ArrayList<>();
 
-            @JsonProperty("refined_experience_details")
-            private List<RefinedExperienceDetails> refinedExperienceDetails;
+        }
+        @Data
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class RefinedExperienceDetails {
 
-            @Data
-            @JsonIgnoreProperties(ignoreUnknown = true)
-            public static class RefinedExperienceDetails {
+            @JsonProperty("start_date")
+            @JsonFormat(pattern = "dd/MM/yyyy")
+            private Date startDate;
 
-                @JsonProperty("start_date")
-                @JsonFormat(pattern = "dd/MM/yyyy")
-                private Date startDate;
+            @JsonProperty("end_date")
+            @JsonFormat(pattern = "dd/MM/yyyy")
+            private Date endDate;
 
-                @JsonProperty("end_date")
-                @JsonFormat(pattern = "dd/MM/yyyy")
-                private Date endDate;
+            @JsonProperty("company")
+            private String companyName;
 
-                @JsonProperty("company")
-                private String companyName;
+            @JsonProperty("company_loc")
+            private String companyLocation;
 
-                @JsonProperty("company_loc")
-                private String companyLocation;
-
-                @JsonProperty("designation")
-                private String designation;
-            }
+            @JsonProperty("designation")
+            private String designation;
         }
     }
 }

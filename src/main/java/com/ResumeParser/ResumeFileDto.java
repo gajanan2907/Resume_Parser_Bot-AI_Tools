@@ -25,7 +25,7 @@ public class ResumeFileDto {
         this.experience = experience;
     }
 
-    public void setDesignation(String designation) {
+    public void setDesignation(List<String> designation) {
         this.designation = designation;
     }
 
@@ -39,7 +39,7 @@ public class ResumeFileDto {
     private String email;
     private String phoneNumber;
     private Float experience;
-    private String designation;
+    private List<String> designation;
     private List<String> skills = new ArrayList<>();
     private String city;
 

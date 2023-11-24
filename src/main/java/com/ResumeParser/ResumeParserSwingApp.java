@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -30,7 +31,7 @@ public class ResumeParserSwingApp extends JFrame {
     //private final JProgressBar progressBar;
 
     public ResumeParserSwingApp() {
-        setTitle("Upload Resume and Download Resumes");
+        setTitle("Upload Resume and Export in Excel");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -95,13 +96,26 @@ public class ResumeParserSwingApp extends JFrame {
                 for (ResumeFileDto resume : resumeFileDto) {
                     Row dataRow = sheet.createRow(rowNum++);
 
-                    dataRow.createCell(1).setCellValue(resume.getName());
-                    dataRow.createCell(2).setCellValue(resume.getEmail());
-                    dataRow.createCell(3).setCellValue(resume.getPhoneNumber());
+                    dataRow.createCell(0).setCellValue(resume.getName());
+                    dataRow.createCell(1).setCellValue(resume.getEmail());
+                    dataRow.createCell(2).setCellValue(resume.getPhoneNumber());
                     if(resume.getExperience() != null){
-                        dataRow.createCell(4).setCellValue(resume.getExperience());
+                        dataRow.createCell(3).setCellValue(resume.getExperience());
                     }
-                    dataRow.createCell(5).setCellValue(resume.getCity());
+
+                    String resumeDesignation = " ";
+                    if (!resume.getDesignation().isEmpty()) {
+                        resumeDesignation = resume.getDesignation().get(0);
+                    }
+
+                    dataRow.createCell(4).setCellValue(resumeDesignation);
+
+                    String resumeSkills = "";
+                    for(String skill: resume.getSkills()) {
+                        resumeSkills = resumeSkills.concat(skill+", ");
+                    }
+                    dataRow.createCell(5).setCellValue(resumeSkills);
+                    dataRow.createCell(6).setCellValue(resume.getCity());
                 }
 
                 File outputFile = new File(downloadLocation, "ResumeData.xlsx");
@@ -193,6 +207,11 @@ public class ResumeParserSwingApp extends JFrame {
         resumeFileDto.setPhoneNumber(responseObject.getLabel().getPersonDetails().getPhoneNumber());
         resumeFileDto.setExperience(responseObject.getLabel().getPersonDetails().getExperience());
         resumeFileDto.setCity(responseObject.getLabel().getPersonDetails().getCity());
+        List<String> designation = new ArrayList<>();
+        for(ApiFileResponse.Label.RefinedExperienceDetails experience: responseObject.getLabel().getRefinedExperienceDetails()){
+            designation.add(experience.getDesignation());
+        }
+        resumeFileDto.setDesignation(designation);
 
         List<String> skills = new ArrayList<>(responseObject.getLabel().getEmploymentDetails().getSkills());
         resumeFileDto.setSkills(skills);
