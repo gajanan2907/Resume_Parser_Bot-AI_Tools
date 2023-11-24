@@ -43,5 +43,4 @@ public class ResumeFileDto {
     private List<String> skills = new ArrayList<>();
     private String city;
 
-
 }
