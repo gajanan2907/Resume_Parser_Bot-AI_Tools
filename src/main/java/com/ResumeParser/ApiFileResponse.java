@@ -1,3 +1,5 @@
+package com.ResumeParser;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,6 +48,9 @@ public class ApiFileResponse {
 
             @JsonProperty("linkedin_url")
             private String linkedInUrl;
+
+            @JsonProperty("city")
+            private String city;
         }
 
         @Data
