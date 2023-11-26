@@ -1,7 +1,12 @@
 package com.ResumeParser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import javax.swing.*;
@@ -13,22 +18,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.apache.poi.ss.usermodel.*;
 
 public class ResumeParserSwingApp extends JFrame {
 
     private final JTextArea textArea;
     private JDialog loaderDialog;
-    private JFrame frame;
 
     public ResumeParserSwingApp() {
-        setTitle("Resumes_Parser_Bot-AI_Tools");
+        setTitle("Resume Parser - AI Tools");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -47,16 +45,18 @@ public class ResumeParserSwingApp extends JFrame {
 
         uploadButton.addActionListener(e -> {
             try {
+
                 uploadButtonActionPerformed();
+                showLoader();
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                showError("Error: " + ex.getMessage());
             }
         });
 
         centerFrame(this);
     }
 
-    private static void centerFrame(JFrame frame) {
+    private void centerFrame(JFrame frame) {
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         int w = frame.getSize().width;
         int h = frame.getSize().height;
@@ -89,25 +89,27 @@ public class ResumeParserSwingApp extends JFrame {
                     protected void done() {
                         hideLoader();
                         loaderDialog.dispose();
-                        JOptionPane.showMessageDialog(ResumeParserSwingApp.this,
-                                "Resume data successfully exported. Check your directory.");
+                        showSuccessMessage("Resume data successfully exported. Check your directory.");
                     }
                 };
-                loaderDialog = createLoadingDialog(frame);
+
                 worker.execute();
-                loaderDialog.setVisible(true);
             } else {
-                JOptionPane.showMessageDialog(this, "Please select files for export.", "No Files Selected", JOptionPane.WARNING_MESSAGE);
+                showError("Please select files for export.");
             }
         }
     }
 
+    private void showSuccessMessage(String message) {
+        JOptionPane.showMessageDialog(this, message, "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     private JDialog createLoadingDialog(Frame parent) {
         JDialog dialog = new JDialog(parent, "Loading...", true);
-        JLabel label = new JLabel("Please wait...");
+        JLabel label = new JLabel("Please wait. Your data is loading...");
         label.setHorizontalAlignment(JLabel.CENTER);
         dialog.getContentPane().add(label);
-        dialog.setSize(200, 100);
+        dialog.setSize(300, 150);
         dialog.setLocationRelativeTo(parent);
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         return dialog;
@@ -120,17 +122,7 @@ public class ResumeParserSwingApp extends JFrame {
     }
 
     private void showLoader() {
-        loaderDialog = new JDialog(this, "Loading", true);
-        JProgressBar progressBar = new JProgressBar();
-        progressBar.setIndeterminate(true);
-
-        JPanel panel = new JPanel();
-        panel.add(progressBar);
-
-        loaderDialog.add(panel);
-        loaderDialog.setSize(200, 100);
-        loaderDialog.setLocationRelativeTo(this);
-        loaderDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        loaderDialog = createLoadingDialog(this);
         loaderDialog.setUndecorated(true);
         loaderDialog.setVisible(true);
     }
@@ -204,7 +196,6 @@ public class ResumeParserSwingApp extends JFrame {
             File downloadLocation = fileChooser.getSelectedFile();
 
             try {
-
                 Workbook workbook = new XSSFWorkbook();
                 Sheet sheet = workbook.createSheet("Resume Data");
 
@@ -217,6 +208,17 @@ public class ResumeParserSwingApp extends JFrame {
                 headerRow.createCell(4).setCellValue("Designation");
                 headerRow.createCell(5).setCellValue("Candidate Skills");
                 headerRow.createCell(6).setCellValue("Current Location");
+
+                CellStyle boldStyle = workbook.createCellStyle();
+                Font boldFont = workbook.createFont();
+                boldFont.setBold(true);
+                boldStyle.setFont(boldFont);
+
+                // Make header cells bold
+                for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+                    Cell cell = headerRow.getCell(i);
+                    cell.setCellStyle(boldStyle);
+                }
 
                 int rowNum = 1;
                 assert resumeFileDto != null;
@@ -250,13 +252,21 @@ public class ResumeParserSwingApp extends JFrame {
                     workbook.write(fileOut);
                 }
 
-                textArea.append("Downloaded Excel file: " + outputFile.getAbsolutePath() + "\n");
+                showMessage("Downloaded Excel file: " + outputFile.getAbsolutePath());
 
             } catch (IOException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error downloading data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                showError("Error downloading data: " + e.getMessage());
             }
         }
+    }
+
+    private void showMessage(String message) {
+        textArea.append(message + "\n");
+    }
+
+    private void showError(String errorMessage) {
+        JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     public static void main(String[] args) {
