@@ -106,7 +106,6 @@ public class ResumeParserSwingApp extends JFrame {
     private JDialog createLoadingDialog(Frame parent) {
         JDialog dialog = new JDialog(parent, "Loading...", true);
         JLabel label = new JLabel("Please wait. Your data is loading...");
-        //showSuccessMessage("please wait");
         label.setHorizontalAlignment(JLabel.CENTER);
         dialog.getContentPane().add(label);
         dialog.setSize(250, 120);
