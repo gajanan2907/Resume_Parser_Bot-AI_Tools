@@ -196,6 +196,7 @@ public class ResumeParserSwingApp extends JFrame {
             File downloadLocation = fileChooser.getSelectedFile();
 
             try {
+
                 Workbook workbook = new XSSFWorkbook();
                 Sheet sheet = workbook.createSheet("Resume Data");
 
