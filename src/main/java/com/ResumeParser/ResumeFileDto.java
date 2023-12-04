@@ -9,9 +9,13 @@ import java.util.List;
 public class ResumeFileDto {
     private String name;
 
+    private String fileName;
+
     public void setName(String name) {
         this.name = name;
     }
+
+    public void setFileName(String fileName){ this.fileName = fileName;}
 
     public void setEmail(String email) {
         this.email = email;
