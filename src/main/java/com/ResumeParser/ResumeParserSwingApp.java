@@ -15,7 +15,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.*;
@@ -24,6 +24,7 @@ public class ResumeParserSwingApp extends JFrame {
 
     private final JTextArea textArea;
     private JDialog loaderDialog;
+    private JProgressBar progressBar;
 
     public ResumeParserSwingApp() {
         setTitle("Resume Parser - AI Tools");
@@ -63,52 +64,22 @@ public class ResumeParserSwingApp extends JFrame {
         frame.setLocation(x, y);
     }
 
-    private void uploadButtonActionPerformed() throws IOException {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setMultiSelectionEnabled(true);
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Resume Files", "pdf");
-        fileChooser.setFileFilter(filter);
-
-        int result = fileChooser.showOpenDialog(this);
-
-        if (result == JFileChooser.APPROVE_OPTION) {
-            List<File> selectedFiles = List.of(fileChooser.getSelectedFiles());
-
-            if (!selectedFiles.isEmpty()) {
-                SwingWorker<Void, Void> worker = new SwingWorker<>() {
-                    @Override
-                    protected Void doInBackground() throws Exception {
-                        sendFileToAPI(selectedFiles);
-                        Thread.sleep(1000);
-                        return null;
-                    }
-
-                    @Override
-                    protected void done() {
-                        hideLoader();
-                        loaderDialog.dispose();
-                        showSuccessMessage("Resume data successfully exported. Check your directory.");
-                    }
-                };
-
-                worker.execute();
-                showLoader();
-            } else {
-                showError("Please select files for export.");
-            }
-        }
-    }
-
-    private void showSuccessMessage(String message) {
-        JOptionPane.showMessageDialog(this, message, "Success", JOptionPane.INFORMATION_MESSAGE);
-    }
-
     private JDialog createLoadingDialog(Frame parent) {
         JDialog dialog = new JDialog(parent, "Loading...", true);
+        JPanel panel = new JPanel(new BorderLayout());
+
+        progressBar = new JProgressBar();
+        progressBar.setIndeterminate(true);
+
         JLabel label = new JLabel("Please wait. Your data is loading...");
         label.setHorizontalAlignment(JLabel.CENTER);
-        dialog.getContentPane().add(label);
-        dialog.setSize(250, 120);
+
+        label.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        panel.add(progressBar, BorderLayout.CENTER);
+        panel.add(label, BorderLayout.SOUTH);
+
+        dialog.getContentPane().add(panel);
+        dialog.setSize(300,40 );
         dialog.setLocationRelativeTo(parent);
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         return dialog;
@@ -125,6 +96,60 @@ public class ResumeParserSwingApp extends JFrame {
         loaderDialog.setUndecorated(true);
         loaderDialog.setVisible(true);
     }
+
+    private void uploadButtonActionPerformed() throws IOException {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setMultiSelectionEnabled(true);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Resume Files", "pdf");
+        fileChooser.setFileFilter(filter);
+
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File[] selectedFiles = fileChooser.getSelectedFiles();
+
+            if (selectedFiles.length > 0) {
+                SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        sendFileToAPI(Arrays.asList(selectedFiles));
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        hideLoader();
+                        loaderDialog.dispose();
+                    }
+                };
+
+                worker.execute();
+                showLoader();
+            }
+            else
+            {
+                showError("Please select files for export.");
+            }
+        }
+        else
+        {
+
+            showError("Export operation canceled or no files selected.");
+        }
+    }
+
+    private void showMessage(String message) {
+        textArea.append(message + "\n");
+    }
+
+    private void showError(String errorMessage) {
+        JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showSuccessMessage(String message) {
+        JOptionPane.showMessageDialog(this, message, "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
+
 
     private void sendFileToAPI(List<File> files) throws IOException {
         String apiUrl = "https://35ryklyq7xikor77u7hoklhf4y0ppljj.lambda-url.ap-south-1.on.aws/file";
@@ -155,11 +180,6 @@ public class ResumeParserSwingApp extends JFrame {
             } else {
                 System.err.println("API Error Response: " + responseEntity.getBody());
             }
-        }
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
         downloadButtonActionPerformed(resumeFileDtos);
 
@@ -252,7 +272,7 @@ public class ResumeParserSwingApp extends JFrame {
                 try (FileOutputStream fileOut = new FileOutputStream(outputFile)) {
                     workbook.write(fileOut);
                 }
-
+                showSuccessMessage("Resume exported successfully! Check the destination directory. Thanks!");
                 showMessage("Downloaded Excel file: " + outputFile.getAbsolutePath());
 
             } catch (IOException e) {
@@ -260,14 +280,6 @@ public class ResumeParserSwingApp extends JFrame {
                 showError("Error downloading data: " + e.getMessage());
             }
         }
-    }
-
-    private void showMessage(String message) {
-        textArea.append(message + "\n");
-    }
-
-    private void showError(String errorMessage) {
-        JOptionPane.showMessageDialog(this, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     public static void main(String[] args) {

@@ -10,6 +10,12 @@ public class ResumeFileDto {
     private String name;
 
     private String fileName;
+    private String email;
+    private String phoneNumber;
+    private Float experience;
+    private List<String> designation;
+    private List<String> skills = new ArrayList<>();
+    private String city;
 
     public void setName(String name) {
         this.name = name;
@@ -40,11 +46,5 @@ public class ResumeFileDto {
     public void setCity(String city) {
         this.city = city;
     }
-    private String email;
-    private String phoneNumber;
-    private Float experience;
-    private List<String> designation;
-    private List<String> skills = new ArrayList<>();
-    private String city;
 
 }
