@@ -25,8 +25,10 @@ public class ResumeParserSwingApp extends JFrame {
     private final JTextArea textArea;
     private JDialog loaderDialog;
     private JProgressBar progressBar;
+    private Image image = Toolkit.getDefaultToolkit().getImage("src/main/resources/ResumeParser1.png");
 
     public ResumeParserSwingApp() {
+        setIconImage(image);
         setTitle("Resume Parser - AI Tools");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
