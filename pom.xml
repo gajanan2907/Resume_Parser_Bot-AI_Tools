@@ -6,16 +6,22 @@
 
     <groupId>com.ResumeParser</groupId>
     <artifactId>ResumeParserSwingApp</artifactId>
-    <version>1.0</version>
+    <version>1.0-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>19</maven.compiler.source>
         <maven.compiler.target>19</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Define plugin and dependency versions -->
+        <spring.version>6.0.0</spring.version>
+        <jackson.version>2.13.4.1</jackson.version>
+        <lombok.version>1.18.28</lombok.version>
+        <poi.version>5.0.0</poi.version>
     </properties>
 
     <build>
         <plugins>
+            <!-- Maven Assembly Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -40,6 +46,8 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Spotless Plugin -->
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
@@ -59,36 +67,48 @@
     </build>
 
     <dependencies>
+        <!-- Spring Framework -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>6.0.0</version>
+            <version>${spring.version}</version>
         </dependency>
+
+        <!-- Jackson JSON Processor -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.13.4.1</version>
+            <version>${jackson.version}</version>
         </dependency>
+
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.28</version>
+            <version>${lombok.version}</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- Apache POI -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>5.0.0</version>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.0.0</version>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>com.ResumeParser</groupId>
             <artifactId>ResumeParserSwingApp</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>5.3.29</version>
         </dependency>
     </dependencies>
 </project>
