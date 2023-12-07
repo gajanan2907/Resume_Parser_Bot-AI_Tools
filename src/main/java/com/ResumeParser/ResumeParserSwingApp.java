@@ -2,23 +2,27 @@ package com.ResumeParser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.Color;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
-import org.apache.poi.ss.usermodel.*;
 
 public class ResumeParserSwingApp extends JFrame {
 
@@ -30,13 +34,14 @@ public class ResumeParserSwingApp extends JFrame {
     public ResumeParserSwingApp() {
         setIconImage(image);
         setTitle("Resume Parser - AI Tools");
-        setSize(600, 400);
+        setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JButton uploadButton = new JButton("Select Resumes");
 
-        textArea = new JTextArea(10, 30);
+        textArea = new JTextArea(20, 50);
         textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -44,7 +49,7 @@ public class ResumeParserSwingApp extends JFrame {
 
         setLayout(new BorderLayout());
         add(buttonPanel, BorderLayout.NORTH);
-        add(new JScrollPane(textArea), BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
 
         uploadButton.addActionListener(e -> {
             try {
@@ -58,11 +63,13 @@ public class ResumeParserSwingApp extends JFrame {
     }
 
     private void centerFrame(JFrame frame) {
-        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        int w = frame.getSize().width;
-        int h = frame.getSize().height;
-        int x = (dim.width - w) / 4;
-        int y = (dim.height - h) / 4;
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int frameWidth = frame.getSize().width;
+        int frameHeight = frame.getSize().height;
+
+        int x = (screenSize.width - frameWidth) / 2;
+        int y = (screenSize.height - frameHeight) / 2;
+
         frame.setLocation(x, y);
     }
 
@@ -72,6 +79,8 @@ public class ResumeParserSwingApp extends JFrame {
 
         progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
+
+        progressBar.setForeground(new Color(63, 156, 255));
 
         JLabel label = new JLabel("Please wait. Your data is loading...");
         label.setHorizontalAlignment(JLabel.CENTER);
@@ -154,7 +163,7 @@ public class ResumeParserSwingApp extends JFrame {
 
 
     private void sendFileToAPI(List<File> files) throws IOException {
-        String apiUrl = "https://35ryklyq7xikor77u7hoklhf4y0ppljj.lambda-url.ap-south-1.on.aws/file";
+        String apiUrl = "https://sswbyclmkr67igcy6iiae7vjxq0wnmlh.lambda-url.ap-south-1.on.aws/file";
 
         RestTemplate restTemplate = new RestTemplate();
 
