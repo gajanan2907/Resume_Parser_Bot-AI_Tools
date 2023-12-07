@@ -38,6 +38,7 @@ public class ResumeParserSwingApp extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JButton uploadButton = new JButton("Select Resumes");
+        customizeButton(uploadButton);
 
         textArea = new JTextArea(20, 50);
         textArea.setEditable(false);
@@ -60,6 +61,14 @@ public class ResumeParserSwingApp extends JFrame {
         });
 
         centerFrame(this);
+    }
+
+    private void customizeButton(JButton button) {
+        button.setBackground(new Color(63, 156, 255));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.createToolTip();
     }
 
     private void centerFrame(JFrame frame) {
