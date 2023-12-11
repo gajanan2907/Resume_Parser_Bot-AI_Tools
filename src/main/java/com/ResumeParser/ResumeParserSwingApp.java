@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -34,11 +35,11 @@ public class ResumeParserSwingApp extends JFrame {
   private Image image =
       Toolkit.getDefaultToolkit().getImage("src/main/resources/ResumeParser1.png");
 
-  private final ExecutorService executorService;
-  private CountDownLatch latch;
+//  private final ExecutorService executorService;
+//  private CountDownLatch latch;
 
   public ResumeParserSwingApp(int threadPoolSize) {
-    this.executorService = Executors.newFixedThreadPool(threadPoolSize);
+//    this.executorService = Executors.newFixedThreadPool(threadPoolSize);
     setIconImage(image);
     setTitle("Resume Parser - AI Tools");
     setSize(800, 600);
@@ -136,7 +137,7 @@ public class ResumeParserSwingApp extends JFrame {
           @Override
           protected Void doInBackground() throws IOException {
             int totalFiles = selectedFiles.length;
-            int batchSize = 10;
+            int batchSize = 30;
             for (int i = 0; i < totalFiles; i += batchSize) {
               int endIndex = Math.min(i + batchSize, totalFiles);
               List<File> batchFiles = Arrays.asList(Arrays.copyOfRange(selectedFiles, i, endIndex));
@@ -175,31 +176,30 @@ public class ResumeParserSwingApp extends JFrame {
     JOptionPane.showMessageDialog(this, message, "Success", JOptionPane.INFORMATION_MESSAGE);
   }
 
-  private void sendFileToAPI(List<File> files) throws IOException {
+  private void sendFileToAPI(List<File> files) {
     String apiUrl = "https://sswbyclmkr67igcy6iiae7vjxq0wnmlh.lambda-url.ap-south-1.on.aws/file";
-    latch = new CountDownLatch(files.size());
+    CountDownLatch latch = new CountDownLatch(files.size());
     RestTemplate restTemplate = new RestTemplate();
-
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-    List<ResumeFileDto> resumeFileDtos = new ArrayList<>();
+    List<ResumeFileDto> resumeFileDtos = Collections.synchronizedList(new ArrayList<>());
+
+    ExecutorService executorService = Executors.newFixedThreadPool(Math.min(files.size(), 30));
 
     for (File file : files) {
       executorService.submit(() -> {
-        try{
+        try {
           MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
           body.add("uploaded_Resume", new FileSystemResource(file));
 
           HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-          ResponseEntity<String> responseEntity =
-                  restTemplate.postForEntity(apiUrl, requestEntity, String.class);
+          ResponseEntity<String> responseEntity = restTemplate.postForEntity(apiUrl, requestEntity, String.class);
           System.out.println("ResponseBody: " + responseEntity.getBody());
 
           if (responseEntity.getStatusCode().is2xxSuccessful()) {
             ObjectMapper objectMapper = new ObjectMapper();
-            ApiFileResponse apiFileResponse =
-                    objectMapper.readValue(responseEntity.getBody(), ApiFileResponse.class);
+            ApiFileResponse apiFileResponse = objectMapper.readValue(responseEntity.getBody(), ApiFileResponse.class);
             ResumeFileDto resumeFileDto = getResumeFileDto(apiFileResponse, file);
             resumeFileDtos.add(resumeFileDto);
 
@@ -208,9 +208,10 @@ public class ResumeParserSwingApp extends JFrame {
           } else {
             System.err.println("API Error Response: " + responseEntity.getBody());
           }
+        } catch (IOException e) {
+          e.printStackTrace();
+        } finally {
           latch.countDown();
-        } catch (IOException e){
-          throw new RuntimeException(e);
         }
       });
     }
@@ -219,10 +220,13 @@ public class ResumeParserSwingApp extends JFrame {
       latch.await();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+    } finally {
+      executorService.shutdown();
     }
+
     downloadButtonActionPerformed(resumeFileDtos);
   }
-
+  
   private static ResumeFileDto getResumeFileDto(ApiFileResponse responseObject, File file) {
     ResumeFileDto resumeFileDto = new ResumeFileDto();
     resumeFileDto.setName(responseObject.getLabel().getPersonDetails().getName());
@@ -255,8 +259,29 @@ public class ResumeParserSwingApp extends JFrame {
     if (result == JFileChooser.APPROVE_OPTION) {
       File downloadLocation = fileChooser.getSelectedFile();
 
-      try {
+      String excelFileName = JOptionPane.showInputDialog(this, "Enter Excel File Name (without extension):");
+      if (excelFileName == null || excelFileName.trim().isEmpty()) {
+        showError("Please enter a valid Excel file name.");
+        return;
+      }
 
+      String fileNameWithExtension = excelFileName + ".xlsx";
+      File outputFile = new File(downloadLocation, fileNameWithExtension);
+
+      if (outputFile.exists()) {
+        int overwriteConfirmation = JOptionPane.showConfirmDialog(
+                this,
+                "The file already exists. Do you want to overwrite it?",
+                "File Exists",
+                JOptionPane.YES_NO_OPTION);
+
+        if (overwriteConfirmation != JOptionPane.YES_OPTION) {
+          showMessage("Export operation canceled.");
+          return;
+        }
+      }
+
+      try {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Resume Data");
 
@@ -308,12 +333,10 @@ public class ResumeParserSwingApp extends JFrame {
           dataRow.createCell(7).setCellValue(resume.getCity());
         }
 
-        File outputFile = new File(downloadLocation,"ResumeData.xlsx");
         try (FileOutputStream fileOut = new FileOutputStream(outputFile)) {
           workbook.write(fileOut);
         }
-        showSuccessMessage(
-            "Resume exported successfully! Check the destination directory. Thanks!");
+        showSuccessMessage("Resume exported successfully! Check the destination directory. Thanks!");
         showMessage("Downloaded Excel file: " + outputFile.getName());
 
       } catch (IOException e) {
@@ -322,6 +345,7 @@ public class ResumeParserSwingApp extends JFrame {
       }
     }
   }
+
 
   public static void main(String[] args) {
     SwingUtilities.invokeLater(() -> new ResumeParserSwingApp(10).setVisible(true));
