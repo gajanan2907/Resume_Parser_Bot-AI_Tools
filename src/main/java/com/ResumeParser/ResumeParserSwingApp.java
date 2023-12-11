@@ -127,19 +127,21 @@ public class ResumeParserSwingApp extends JFrame {
 
     if (result == JFileChooser.APPROVE_OPTION) {
       File[] selectedFiles = fileChooser.getSelectedFiles();
+      List<ResumeFileDto> resumeInfo = new ArrayList<>();
 
       if (selectedFiles.length > 0) {
         SwingWorker<Void, Integer> worker = new SwingWorker<>() {
           @Override
-          protected Void doInBackground() throws IOException {
+          protected Void doInBackground() {
             int totalFiles = selectedFiles.length;
             int batchSize = 30;
             for (int i = 0; i < totalFiles; i += batchSize) {
               int endIndex = Math.min(i + batchSize, totalFiles);
               List<File> batchFiles = Arrays.asList(Arrays.copyOfRange(selectedFiles, i, endIndex));
-                  sendFileToAPI(batchFiles);
+              resumeInfo.addAll(sendFileToAPI(batchFiles));
                 publish(endIndex);
             }
+            downloadButtonActionPerformed(resumeInfo);
             return null;
           }
 
@@ -172,7 +174,7 @@ public class ResumeParserSwingApp extends JFrame {
     JOptionPane.showMessageDialog(this, message, "Success", JOptionPane.INFORMATION_MESSAGE);
   }
 
-  private void sendFileToAPI(List<File> files) {
+  private List<ResumeFileDto> sendFileToAPI(List<File> files) {
     String apiUrl = "https://sswbyclmkr67igcy6iiae7vjxq0wnmlh.lambda-url.ap-south-1.on.aws/file";
     CountDownLatch latch = new CountDownLatch(files.size());
     RestTemplate restTemplate = new RestTemplate();
@@ -191,16 +193,12 @@ public class ResumeParserSwingApp extends JFrame {
           HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
           ResponseEntity<String> responseEntity = restTemplate.postForEntity(apiUrl, requestEntity, String.class);
-          System.out.println("ResponseBody: " + responseEntity.getBody());
 
           if (responseEntity.getStatusCode().is2xxSuccessful()) {
             ObjectMapper objectMapper = new ObjectMapper();
             ApiFileResponse apiFileResponse = objectMapper.readValue(responseEntity.getBody(), ApiFileResponse.class);
             ResumeFileDto resumeFileDto = getResumeFileDto(apiFileResponse, file);
             resumeFileDtos.add(resumeFileDto);
-
-            System.out.println("API Response: " + apiFileResponse);
-
           } else {
             System.err.println("API Error Response: " + responseEntity.getBody());
           }
@@ -220,7 +218,7 @@ public class ResumeParserSwingApp extends JFrame {
       executorService.shutdown();
     }
 
-    downloadButtonActionPerformed(resumeFileDtos);
+    return resumeFileDtos;
   }
 
   private static ResumeFileDto getResumeFileDto(ApiFileResponse responseObject, File file) {
@@ -247,15 +245,15 @@ public class ResumeParserSwingApp extends JFrame {
 
   private void downloadButtonActionPerformed(List<ResumeFileDto> resumeFileDto) {
     JFileChooser fileChooser = new JFileChooser();
-    fileChooser.setDialogTitle("Select Download Location");
-    fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    fileChooser.setDialogTitle("Save as excel");
+    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
     int result = fileChooser.showSaveDialog(this);
 
     if (result == JFileChooser.APPROVE_OPTION) {
       File downloadLocation = fileChooser.getSelectedFile();
 
-      String excelFileName = JOptionPane.showInputDialog(this, "Enter Excel File Name (without extension):");
+      String excelFileName = JOptionPane.showInputDialog(this, "Enter file name:");
       if (excelFileName == null || excelFileName.trim().isEmpty()) {
         showError("Please enter a valid Excel file name.");
         return;
@@ -332,7 +330,7 @@ public class ResumeParserSwingApp extends JFrame {
         try (FileOutputStream fileOut = new FileOutputStream(outputFile)) {
           workbook.write(fileOut);
         }
-        showSuccessMessage("Resume exported successfully! Check the destination directory. Thanks!");
+        showSuccessMessage("Resume exported successfully...!");
         showMessage("Downloaded Excel file: " + outputFile.getName());
 
       } catch (IOException e) {
