@@ -35,11 +35,7 @@ public class ResumeParserSwingApp extends JFrame {
   private Image image =
       Toolkit.getDefaultToolkit().getImage("src/main/resources/ResumeParser1.png");
 
-//  private final ExecutorService executorService;
-//  private CountDownLatch latch;
-
-  public ResumeParserSwingApp(int threadPoolSize) {
-//    this.executorService = Executors.newFixedThreadPool(threadPoolSize);
+  public ResumeParserSwingApp() {
     setIconImage(image);
     setTitle("Resume Parser - AI Tools");
     setSize(800, 600);
@@ -226,7 +222,7 @@ public class ResumeParserSwingApp extends JFrame {
 
     downloadButtonActionPerformed(resumeFileDtos);
   }
-  
+
   private static ResumeFileDto getResumeFileDto(ApiFileResponse responseObject, File file) {
     ResumeFileDto resumeFileDto = new ResumeFileDto();
     resumeFileDto.setName(responseObject.getLabel().getPersonDetails().getName());
@@ -348,6 +344,6 @@ public class ResumeParserSwingApp extends JFrame {
 
 
   public static void main(String[] args) {
-    SwingUtilities.invokeLater(() -> new ResumeParserSwingApp(10).setVisible(true));
+    SwingUtilities.invokeLater(() -> new ResumeParserSwingApp().setVisible(true));
   }
 }
