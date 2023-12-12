@@ -99,7 +99,7 @@ public class ResumeParserSwingApp extends JFrame {
     panel.add(label, BorderLayout.SOUTH);
 
     dialog.getContentPane().add(panel);
-    dialog.setSize(300, 40);
+    dialog.setSize(300, 45);
     dialog.setLocationRelativeTo(parent);
     dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
     return dialog;
