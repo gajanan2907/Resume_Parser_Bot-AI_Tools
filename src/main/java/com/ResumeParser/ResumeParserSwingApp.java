@@ -134,7 +134,7 @@ public class ResumeParserSwingApp extends JFrame {
           @Override
           protected Void doInBackground() {
             int totalFiles = selectedFiles.length;
-            int batchSize = 30;
+            int batchSize = 100;
             for (int i = 0; i < totalFiles; i += batchSize) {
               int endIndex = Math.min(i + batchSize, totalFiles);
               List<File> batchFiles = Arrays.asList(Arrays.copyOfRange(selectedFiles, i, endIndex));
@@ -182,7 +182,7 @@ public class ResumeParserSwingApp extends JFrame {
     headers.setContentType(MediaType.MULTIPART_FORM_DATA);
     List<ResumeFileDto> resumeFileDtos = Collections.synchronizedList(new ArrayList<>());
 
-    ExecutorService executorService = Executors.newFixedThreadPool(Math.min(files.size(), 30));
+    ExecutorService executorService = Executors.newFixedThreadPool(Math.min(files.size(), 100));
 
     for (File file : files) {
       executorService.submit(() -> {
@@ -245,6 +245,8 @@ public class ResumeParserSwingApp extends JFrame {
 
   private void downloadButtonActionPerformed(List<ResumeFileDto> resumeFileDto) {
     JFileChooser fileChooser = new JFileChooser();
+    FileNameExtensionFilter filter = new FileNameExtensionFilter(".xlsx", "xlsx");
+    fileChooser.setFileFilter(filter);
     fileChooser.setDialogTitle("Save as excel");
     fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
@@ -253,14 +255,12 @@ public class ResumeParserSwingApp extends JFrame {
     if (result == JFileChooser.APPROVE_OPTION) {
       File downloadLocation = fileChooser.getSelectedFile();
 
-      String excelFileName = JOptionPane.showInputDialog(this, "Enter file name:");
-      if (excelFileName == null || excelFileName.trim().isEmpty()) {
-        showError("Please enter a valid Excel file name.");
-        return;
+      String fileNameWithExtension = downloadLocation.getAbsolutePath();
+      if (!fileNameWithExtension.toLowerCase().endsWith(".xlsx")) {
+        fileNameWithExtension += ".xlsx";
       }
 
-      String fileNameWithExtension = excelFileName + ".xlsx";
-      File outputFile = new File(downloadLocation, fileNameWithExtension);
+      File outputFile = new File(fileNameWithExtension);
 
       if (outputFile.exists()) {
         int overwriteConfirmation = JOptionPane.showConfirmDialog(
@@ -330,7 +330,7 @@ public class ResumeParserSwingApp extends JFrame {
         try (FileOutputStream fileOut = new FileOutputStream(outputFile)) {
           workbook.write(fileOut);
         }
-        showSuccessMessage("Resume exported successfully...!");
+        showSuccessMessage("Resume exported successfully.! Please Check..");
         showMessage("Downloaded Excel file: " + outputFile.getName());
 
       } catch (IOException e) {
