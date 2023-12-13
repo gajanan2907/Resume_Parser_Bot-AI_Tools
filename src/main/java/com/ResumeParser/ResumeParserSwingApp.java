@@ -325,6 +325,10 @@ public class ResumeParserSwingApp extends JFrame {
           }
           dataRow.createCell(6).setCellValue(resumeSkills);
           dataRow.createCell(7).setCellValue(resume.getCity());
+
+          for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+            sheet.autoSizeColumn(i);
+          }
         }
 
         try (FileOutputStream fileOut = new FileOutputStream(outputFile)) {
