@@ -227,7 +227,7 @@ public class ResumeParserSwingApp extends JFrame {
     resumeFileDto.setFileName(file.getName());
     resumeFileDto.setEmail(responseObject.getLabel().getPersonDetails().getEmail());
     resumeFileDto.setPhoneNumber(responseObject.getLabel().getPersonDetails().getPhoneNumber());
-    resumeFileDto.setExperience(responseObject.getLabel().getPersonDetails().getExperience());
+    resumeFileDto.setExperience(responseObject.getLabel().getPersonDetails().getTotalExperience().getExperience());
     resumeFileDto.setCity(responseObject.getLabel().getPersonDetails().getCity());
     List<String> designation = new ArrayList<>();
     for (ApiFileResponse.Label.RefinedExperienceDetails experience :

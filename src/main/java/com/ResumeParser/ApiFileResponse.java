@@ -45,8 +45,8 @@ public class ApiFileResponse {
 
       private String email;
 
-      @JsonProperty("year")
-      private Float experience;
+      @JsonProperty("totalexp")
+      private TotalExperience totalExperience;
 
       @JsonProperty("linkedin_url")
       private String linkedInUrl;
@@ -63,6 +63,14 @@ public class ApiFileResponse {
 
       @JsonProperty("high_education")
       private List<String> qualification;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TotalExperience {
+
+      @JsonProperty("year")
+      private Float experience;
     }
 
     @Data
