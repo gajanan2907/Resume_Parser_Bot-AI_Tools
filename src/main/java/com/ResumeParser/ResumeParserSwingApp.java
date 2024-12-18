@@ -175,7 +175,7 @@ public class ResumeParserSwingApp extends JFrame {
   }
 
   private List<ResumeFileDto> sendFileToAPI(List<File> files) {
-    String apiUrl = "https://sswbyclmkr67igcy6iiae7vjxq0wnmlh.lambda-url.ap-south-1.on.aws/file";
+    String apiUrl = "https://4zfbvw2ecwl6s4m47p3zwhv7tm0uofpq.lambda-url.ap-south-1.on.aws/file";
     CountDownLatch latch = new CountDownLatch(files.size());
     RestTemplate restTemplate = new RestTemplate();
     HttpHeaders headers = new HttpHeaders();
